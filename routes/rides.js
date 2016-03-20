@@ -7,11 +7,11 @@ var router = express.Router();
 var db = require('../database/database');
 
 
-router.post('/createProvide', function(req, res){
+router.post('/createRide', function(req, res){
     const data = {
         user_id : req.body.userid,
-        origin : req.body.startDest,
-        dest : req.body.endDest,
+        origin : req.body.origin,
+        dest : req.body.dest,
         pay_type : req.body.payType,
         seats : req.body.seatsAvail,
         min_amt : req.body.minAmount
@@ -28,13 +28,13 @@ router.post('/createProvide', function(req, res){
 });
 
 
-router.post('/createRequester', function(req, res) {
+router.post('/createRequest', function(req, res) {
     const data = {        
         user_id : req.body.userid,
-        origin : req.body.startDest,
-        dest : req.body.endDest,
+        origin : req.body.origin,
+        dest : req.body.dest,
         pay_type : req.body.payType,
-        max_pay : req.body.maxPay
+        max_pay : req.body.maxAmount
     }
     const onInsert = function(err,response){
         if(err){
