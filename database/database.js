@@ -91,3 +91,50 @@ exports.getUID = function (data, callback) {
     }
     connect(onConnect);
 }
+
+exports.createRide = function(data, callback){
+    const onConnect = function(err, client, message){
+        if(err){
+            callback(true, message)
+        }
+        else{
+            client.query("INSERT INTO rides(user_id,origin,destination,seats,pay_type,min_payment) values($1,$2,$3,$4,$5,$6)",
+                [data.user_id,data.origin,data.dest,data.seats,data.pay_type,data.min_amt], function(err, result){
+                    if(err){
+                        callback(true,"New Ride error: "+err);
+                    } 
+                    else {
+                        callback(false,"Successful Ride Add!");
+                    }
+                        client.end();
+
+                });
+        }
+    }
+
+    connect(onConnect)
+}
+
+
+exports.createRequest = function(data, callback){
+    const onConnect = function(err, client, message){
+        if(err){
+            callback(true, message)
+        }
+        else{
+            client.query("INSERT INTO requests(user_id,origin,destination,pay_type,max_payment) values($1,$2,$3,$4,$5)",
+                [data.user_id,data.origin,data.dest,data.pay_type,data.max_pay], function(err, result){
+                    if(err){
+                        callback(true,"New Request error: "+err);
+                    } 
+                    else {
+                        callback(false,"Successful Request Add!");
+                    }
+                        client.end();
+
+                });
+        }
+    }
+
+    connect(onConnect)
+}
