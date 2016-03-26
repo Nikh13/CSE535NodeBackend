@@ -7,6 +7,7 @@ var router = express.Router();
 var db = require('../database/database');
 
 
+
 router.post('/createRide', function(req, res){
     const data = {
         user_id : req.body.userid,
@@ -27,7 +28,6 @@ router.post('/createRide', function(req, res){
     db.createRide(data, onInsert);
 });
 
-
 router.post('/createRequest', function(req, res) {
     const data = {        
         user_id : req.body.userid,
@@ -46,6 +46,46 @@ router.post('/createRequest', function(req, res) {
     }
     db.createRequest(data, onInsert);
 });
+
+
+
+
+
+router.get('/getRides/:userid', function(req, res){
+    var userid = req.params.userid;
+
+    cons onRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    }
+
+    db.getMyRides(data, onRequest);
+
+});
+
+router.get('/getRequests/:userid', function(req, res){
+    var data = {
+        userid : req.params.userid
+    }
+
+    cons onRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    }
+
+    db.getMyRequests(data, onRequest);
+
+});
+
+
+
+
+
+
 
 
 

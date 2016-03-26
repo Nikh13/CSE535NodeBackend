@@ -92,6 +92,22 @@ exports.getUID = function (data, callback) {
     connect(onConnect);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exports.createRide = function(data, callback){
     const onConnect = function(err, client, message){
         if(err){
@@ -137,4 +153,60 @@ exports.createRequest = function(data, callback){
     }
 
     connect(onConnect)
+}
+
+
+exports.getMyRides = function (data, callback) {
+    
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT * FROM rides WHERE user_id = $1",
+                [data.userid], function(err,result){
+                    if(err){
+                        callback(true,"Get error: "+err);
+                    } else {
+                        var results = [];
+                        var queryResults = result.rows;
+                        for(var i=0;i<queryResults.length;i++){
+                            results.push(queryResults[i]);
+                        }
+                        callback(false,results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getMyRequests = function (data, callback) {
+    
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT * FROM requests WHERE user_id = $1",
+                [data.userid], function(err,result){
+                    if(err){
+                        callback(true,"Get error: "+err);
+                    } else {
+                        var results = [];
+                        var queryResults = result.rows;
+                        for(var i=0;i<queryResults.length;i++){
+                            results.push(queryResults[i]);
+                        }
+                        callback(false,results);
+                    }
+                    client.end();
+                });
+        }
+    }
+
+    connect(onConnect);
 }
