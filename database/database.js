@@ -163,7 +163,7 @@ exports.getMyRides = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT * FROM rides WHERE user_id = $1",
+            client.query("SELECT origin, destination, seats, pay_type, min_payment FROM rides WHERE user_id = $1",
                 [data.userid], function(err,result){
                     if(err){
                         callback(true,"Get error: "+err);
@@ -191,7 +191,7 @@ exports.getMyRequests = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT * FROM requests WHERE user_id = $1",
+            client.query("SELECT origin, destination, pay_type, max_payment FROM requests WHERE user_id = $1",
                 [data.userid], function(err,result){
                     if(err){
                         callback(true,"Get error: "+err);
