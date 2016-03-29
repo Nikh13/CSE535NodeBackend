@@ -47,14 +47,10 @@ router.post('/createRequest', function(req, res) {
     db.createRequest(data, onInsert);
 });
 
-
-
-
-
 router.get('/getRides/:userid', function(req, res){
-    var userid = req.params.userid;
+    var data = req.params.userid;
 
-    cons onRequest = function(err, response){
+    const onRequest = function(err, response){
         if(err)
             res.send(response);
         else
@@ -70,7 +66,7 @@ router.get('/getRequests/:userid', function(req, res){
         userid : req.params.userid
     }
 
-    cons onRequest = function(err, response){
+    const onRequest = function(err, response){
         if(err)
             res.send(response);
         else
