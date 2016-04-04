@@ -1,5 +1,7 @@
 /**
  * Created by Nikhil on 3/8/16.
+ * Contributors:
+ *  Brian Vincent
  */
 
 var express = require('express');
@@ -75,6 +77,20 @@ router.post('/getPossibleRoutes', function(req,res) {
     }
     gm.directions(params,onGet);
 });
+
+
+router.get('/PayType/:payTypeId', function(req, res) {
+    const data = req.params.payTypeId;
+
+    const onGet = function(err,response){
+        if(err){res.send(response);
+        } else {
+            res.json(response);
+        }
+    }
+    db.getPayType(data,onGet);
+});
+
 
 module.exports = router;
 
