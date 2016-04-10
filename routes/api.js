@@ -67,8 +67,7 @@ router.post('/getPossibleRoutes', function(req,res) {
     var ride;
     var rideDetails;
     var finalRequestList = [];
-    var paramsList = [];
-    var count = 0;
+    var requestList = [];
 
     const onGetRide = function(err,response){
         if(err){res.send(response);
@@ -87,32 +86,21 @@ router.post('/getPossibleRoutes', function(req,res) {
     const onGetRequests = function(err,result){
         if(err){res.send(result);
         } else {
+            requestList = result;
             for(var i=0;i<result.length;i++){
-                request = result[i];
+                var request = result[i];
                 if(request.pay_type!=ride.pay_type||request.max_payment<ride.min_payment){
                     continue;
                 }
-                finalRequestList.push(request);
-                paramsList.push({
+                var params = {
                     origin: ride.origin,
                     destination: ride.destination,
                     waypoints:""+request.origin+"|"+request.destination
-                });
-            }
-            for(var i=0;i<paramsList.length;i++){
-                var params = paramsList[i];
-                console.log(params);
+                };
                 gm.directions(params,onGetRequestDirections);
             }
         }
 
-    }
-
-    function getFun(val){
-        return function(callback){
-
-            callback(null,true);
-        };
     }
 
     const onGetRideDirections = function(err,result){
@@ -122,20 +110,18 @@ router.post('/getPossibleRoutes', function(req,res) {
         }
     }
     const onGetRequestDirections = function(err,result){
-        count++;
-        if(err){
+        if(err){res.send("Some requestD error");
         } else {
             var result = computeTotalDistance(result);
             if(ride.max_delay==-1 || result.duration-rideDetails.duration<=ride.max_delay){
-                finalRequestList[finalRequestList.length-1].duration=result.duration;
-                finalRequestList[finalRequestList.length-1].distance=result.distance;
-            }
-            else {
-                finalRequestList.pop();
+                requestList[count].duration=result.duration;
+                requestList[count].distance=result.distance;
+                finalRequestList.push(requestList[count]);
             }
         }
-        if(count==paramsList.length)
+        if(count==requestList.length)
             res.json(finalRequestList);
+        count++;
     }
 
     db.getRide(ride_id,onGetRide)
