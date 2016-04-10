@@ -125,7 +125,7 @@ router.post('/getPossibleRoutes', function(req,res) {
                 finalRequestList.push(request);
             }
         }
-        if(count==requestList.length)
+        if(count==requestList.length-1)
             res.json(finalRequestList);
         count++;
     }
