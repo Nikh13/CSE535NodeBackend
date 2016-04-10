@@ -126,6 +126,7 @@ exports.createRequest = function(data, callback){
         }
         else{
             var request_id = uuid.v4();
+            console.log("Timestamp at insertion:"+data.timestamp);
             client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment,ts) values($1,$2,$3,$4,$5,$6,$7)",
                 [request_id,data.user_id,data.origin,data.dest,data.pay_type,data.max_pay,data.timestamp], function(err, result){
                     if(err){
