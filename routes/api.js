@@ -122,6 +122,7 @@ router.post('/getPossibleRoutes', function(req,res) {
             if(ride.max_delay==-1||result.duration-rideDetails.duration<=ride.max_delay){
                 request.duration=result.duration;
                 request.distance=result.distance;
+                request.delay = result.duration-rideDetails.duration;
                 finalRequestList.push(request);
             }
         }
