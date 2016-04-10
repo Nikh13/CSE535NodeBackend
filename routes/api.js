@@ -100,14 +100,21 @@ router.post('/getPossibleRoutes', function(req,res) {
                 });
             }
             for(var i=0;i<paramsList.length;i++){
-                apiCallList.push(function(){
-                    gm.directions(paramsList[i],onGetRequestDirections);
-                });
+                var func = getFun(val);
+                apiCallList.push(func);
             }
             async.series(apiCallList);
             res.json(finalRequestList);
         }
 
+    }
+
+    function getFun(val){
+        return function(){
+            var params = paramsList[val];
+            console.log(params);
+            gm.directions(params,onGetRequestDirections);
+        };
     }
 
     const onGetRideDirections = function(err,result){
