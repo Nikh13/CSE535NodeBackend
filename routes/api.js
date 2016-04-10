@@ -68,6 +68,8 @@ router.post('/getPossibleRoutes', function(req,res) {
     var rideDetails;
     var finalRequestList = [];
     var requestList = [];
+    var paramsList = [];
+    var count =0;
 
     const onGetRide = function(err,response){
         if(err){res.send(response);
@@ -86,10 +88,9 @@ router.post('/getPossibleRoutes', function(req,res) {
     const onGetRequests = function(err,result){
         if(err){res.send(result);
         } else {
-            requestList = result;
             for(var i=0;i<result.length;i++){
                 var request = result[i];
-                if(request.pay_type!=ride.pay_type||request.max_payment<ride.min_payment){
+                if(request.pay_type!=ride.pay_type&&request.max_payment<ride.min_payment){
                     continue;
                 }
                 var params = {
@@ -97,7 +98,11 @@ router.post('/getPossibleRoutes', function(req,res) {
                     destination: ride.destination,
                     waypoints:""+request.origin+"|"+request.destination
                 };
-                gm.directions(params,onGetRequestDirections);
+                requestList.push(request);
+                paramsList.push(params);
+            }
+            for(var i=0;i<requestList.length;i++){
+                gm.directions(paramsList[i],onGetRequestDirections);
             }
         }
 
@@ -112,11 +117,12 @@ router.post('/getPossibleRoutes', function(req,res) {
     const onGetRequestDirections = function(err,result){
         if(err){res.send("Some requestD error");
         } else {
+            var request = requestList[count];
             var result = computeTotalDistance(result);
-            if(ride.max_delay==-1 || result.duration-rideDetails.duration<=ride.max_delay){
-                requestList[count].duration=result.duration;
-                requestList[count].distance=result.distance;
-                finalRequestList.push(requestList[count]);
+            if(ride.max_delay==-1&&result.duration-rideDetails.duration<=ride.max_delay){
+                request.duration=result.duration;
+                request.distance=result.distance;
+                finalRequestList.push(request);
             }
         }
         if(count==requestList.length)
