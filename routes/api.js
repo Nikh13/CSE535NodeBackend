@@ -100,20 +100,28 @@ router.post('/getPossibleRoutes', function(req,res) {
                 });
             }
             for(var i=0;i<paramsList.length;i++){
-                var func = getFun(val);
+                var func = getFun(i);
                 apiCallList.push(func);
             }
-            async.series(apiCallList);
-            res.json(finalRequestList);
+            async.series(apiCallList,function(err,result){
+                if(err){res.send("Some request error")}
+                else{
+                    res.json(finalRequestList);
+                }
+            });
         }
 
     }
 
     function getFun(val){
-        return function(){
+        return function(callback){
             var params = paramsList[val];
             console.log(params);
-            gm.directions(params,onGetRequestDirections);
+            var success = gm.directions(params,onGetRequestDirections);
+            if(success)
+                callback(null,success);
+            else
+                callback(true,success);
         };
     }
 
@@ -124,7 +132,7 @@ router.post('/getPossibleRoutes', function(req,res) {
         }
     }
     const onGetRequestDirections = function(err,result){
-        if(err){res.send("Some error");
+        if(err){return false;
         } else {
             var result = computeTotalDistance(result);
             if(ride.max_delay==-1 || result.duration-rideDetails.duration<=ride.max_delay){
@@ -134,6 +142,7 @@ router.post('/getPossibleRoutes', function(req,res) {
             else{
                 finalRequestList.pop();
             }
+            return true;
         }
     }
 
