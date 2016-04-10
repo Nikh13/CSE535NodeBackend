@@ -62,20 +62,66 @@ router.post('/getPossibleRoutes', function(req,res) {
        "key":"AIzaSyC9brE2MDidqiMgvQXeQNRPgAb_nPCxRP0",
        "secure":true};
     var gm = new map(config);
-    const params = {
-        origin: req.body.origin,
-        destination: req.body.destination,
-        waypoints:req.body.waypoints
-    };
+    const ride_id = req.body.ride_id;
+    var ride;
+    var rideDetails;
+    var finalRequestList = [];
 
-    const onGet = function(err,result){
+    const onGetRide = function(err,response){
+        if(err){res.send(response);
+        } else {
+            ride = response;
+            var params = {
+                origin: ride.origin,
+                destination: ride.destination
+            };
+            gm.directions(params,onGetRideDirections);
+            db.getRequests(onGetRequests);
+        }
+
+    }
+
+    const onGetRequests = function(err,result){
+        if(err){res.send(result);
+        } else {
+            for(var i=0;i<result.length;i++){
+                request = result[i];
+                if(request.pay_type!=ride.pay_type||request.max_payment<ride.min_payment){
+                    continue;
+                }
+                finalRequestList.push(request);
+                var params = {
+                    origin: ride.origin,
+                    destination: ride.destination,
+                    waypoints:""+request.origin+"|"+request.destination
+                };
+                gm.directions(params,onGetRequestDirections);
+            }
+        }
+
+    }
+
+    const onGetRideDirections = function(err,result){
         if(err){res.send("Some error");
         } else {
-            computeTotalDistance(result);
-            res.json(result);
+            rideDetails = computeTotalDistance(result);
         }
     }
-    gm.directions(params,onGet);
+    const onGetRequestDirections = function(err,result){
+        if(err){res.send("Some error");
+        } else {
+            var result = computeTotalDistance(result);
+            if(ride.max_delay!=-1 && result.duration-rideDetails.duration>ride.max_delay){
+                finalRequestList.pop();
+            }
+            else{
+                finalRequestList[finalRequestList.length-1].duration=result.duration;
+                finalRequestList[finalRequestList.length-1].distance=result.distance;
+            }
+        }
+    }
+
+    db.getRide(ride_id,onGetRide)
 });
 
 
@@ -103,7 +149,9 @@ function computeTotalDistance(result) {
         totalTime += myroute.legs[i].duration.value;
     }
     totalDist = totalDist / 1000.
+    var duration = (totalTime / 60).toFixed(2);
     console.log("total distance is: " + totalDist + " km total time is: " + (totalTime / 60).toFixed(2) + " minutes");
+    return {distance:totalDist,duration:duration};
 }
 
 function arePointsNear(checkPoint, centerPoint, km) {

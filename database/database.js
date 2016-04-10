@@ -95,22 +95,6 @@ exports.getUID = function (data, callback) {
     connect(onConnect);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 exports.createRide = function(data, callback){
     const onConnect = function(err, client, message){
         if(err){
@@ -118,13 +102,13 @@ exports.createRide = function(data, callback){
         }
         else{
             var ride_id = uuid.v4();
-            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment) values($1,$2,$3,$4,$5,$6,$7)",
-                [ride_id,data.user_id,data.origin,data.dest,data.seats,data.pay_type,data.min_amt], function(err, result){
+            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay) values($1,$2,$3,$4,$5,$6,$7,$8)",
+                [ride_id,data.user_id,data.origin,data.dest,data.seats,data.pay_type,data.min_amt,data.max_delay], function(err, result){
                     if(err){
                         callback(true,"New Ride error: "+err);
-                    } 
+                    }
                     else {
-                        callback(false,"Successful Ride Add!");
+                        callback(false,{status:success});
                     }
                         client.end();
 
@@ -142,13 +126,13 @@ exports.createRequest = function(data, callback){
         }
         else{
             var request_id = uuid.v4();
-            client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment) values($1,$2,$3,$4,$5,$6)",
-                [request_id,data.user_id,data.origin,data.dest,data.pay_type,data.max_pay], function(err, result){
+            client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment,ts) values($1,$2,$3,$4,$5,$6,$7)",
+                [request_id,data.user_id,data.origin,data.dest,data.pay_type,data.max_pay,data.timestamp], function(err, result){
                     if(err){
                         callback(true,"New Request error: "+err);
                     } 
                     else {
-                        callback(false,"Successful Request Add!");
+                        callback(false,{status:success});
                     }
                         client.end();
 
@@ -166,7 +150,7 @@ exports.getMyRides = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT ride_id, origin, destination, seats, pay_type, min_payment FROM rides WHERE user_id = $1",
+            client.query("SELECT ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE user_id = $1",
                 [data], function(err,result){
                     if(err){
                         callback(true,"Get error: "+err);
@@ -187,6 +171,57 @@ exports.getMyRides = function (data, callback) {
     connect(onConnect);
 }
 
+exports.getRide = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE ride_id = $1",
+                [data], function(err,result){
+                    if(err){
+                        callback(true,"Get error: "+err);
+                    } else {
+                        var queryResults = result.rows;
+                        var results = queryResults[0];
+                        callback(false,results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getRequests = function (callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT user_id,request_id,origin, destination, pay_type, max_payment,ts FROM requests", function(err,result){
+                    if(err){
+                        callback(true,"Get error: "+err);
+                    } else {
+                        var results = [];
+                        var queryResults = result.rows;
+                        for(var i=0;i<queryResults.length;i++){
+                            results.push(queryResults[i]);
+                        }
+                        callback(false,results);
+                    }
+                    client.end();
+                });
+        }
+    }
+
+    connect(onConnect);
+}
+
 exports.getMyRequests = function (data, callback) {
     
     const onConnect = function (err, client, message) {
@@ -194,7 +229,7 @@ exports.getMyRequests = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT request_id,origin, destination, pay_type, max_payment FROM requests WHERE user_id = $1",
+            client.query("SELECT request_id,origin, destination, pay_type, max_payment,ts FROM requests WHERE user_id = $1",
                 [data.userid], function(err,result){
                     if(err){
                         callback(true,"Get error: "+err);
