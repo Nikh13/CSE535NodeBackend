@@ -134,6 +134,45 @@ router.post('/getPossibleRoutes', function(req,res) {
     db.getRide(ride_id,onGetRide)
 });
 
+router.post('/selectRequest', function(req,res){
+    var ride_id = req.body.ride_id;
+    var user_id = req.body.user_id;
+    var requester_id = req.body.requester_id;
+    var request_id = req.body.request_id;
+
+    const data ={
+        ride_id:ride_id,
+        user_id:user_id,
+        requester_id:requester_id,
+        request_id:request_id
+    };
+
+    const onSelect = function(err,result){
+        if(err){
+            res.send(err);
+        } else {
+            res.json(result);
+        }
+    };
+
+    db.insertConfirmation(data,onSelect)
+
+});
+
+router.post('/confirmRide', function(req,res){
+    var data = req.body.ride_id;
+
+    const onConfirm = function(err,result){
+        if(err){
+            res.send(err+" "+result);
+        } else {
+            res.json(result);
+        }
+    };
+
+    db.confirmRide(data,onConfirm)
+
+});
 
 router.get('/PayType/:payTypeId', function(req, res) {
     const data = req.params.payTypeId;
