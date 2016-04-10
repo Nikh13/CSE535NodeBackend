@@ -102,8 +102,8 @@ exports.createRide = function(data, callback){
         }
         else{
             var ride_id = uuid.v4();
-            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay) values($1,$2,$3,$4,$5,$6,$7,$8)",
-                [ride_id,data.user_id,data.origin,data.dest,data.seats,data.pay_type,data.min_amt,data.max_delay], function(err, result){
+            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+                [ride_id,data.user_id,data.origin,data.dest,data.seats,data.pay_type,data.min_amt,data.max_delay,data.timestamp], function(err, result){
                     if(err){
                         callback(true,"New Ride error: "+err);
                     }
