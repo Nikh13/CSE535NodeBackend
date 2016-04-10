@@ -112,12 +112,12 @@ router.post('/getPossibleRoutes', function(req,res) {
         if(err){res.send("Some error");
         } else {
             var result = computeTotalDistance(result);
-            if(ride.max_delay!=-1 && result.duration-rideDetails.duration>ride.max_delay){
-                finalRequestList.pop();
-            }
-            else{
+            if(ride.max_delay==-1 || result.duration-rideDetails.duration<=ride.max_delay){
                 finalRequestList[finalRequestList.length-1].duration=result.duration;
                 finalRequestList[finalRequestList.length-1].distance=result.distance;
+            }
+            else{
+                finalRequestList.pop();
             }
         }
     }
