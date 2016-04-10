@@ -108,7 +108,7 @@ exports.createRide = function(data, callback){
                         callback(true,"New Ride error: "+err);
                     }
                     else {
-                        callback(false,{status:success});
+                        callback(false,{status:"success"});
                     }
                         client.end();
 
@@ -132,7 +132,7 @@ exports.createRequest = function(data, callback){
                         callback(true,"New Request error: "+err);
                     } 
                     else {
-                        callback(false,{status:success});
+                        callback(false,{status:"success"});
                     }
                         client.end();
 
