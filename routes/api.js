@@ -7,7 +7,8 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../database/database');
-var map = require('googlemaps')
+var map = require('googlemaps');
+var async = require('async');
 
 /* GET home page. */
 router.post('/newuser', function(req, res) {
@@ -66,6 +67,8 @@ router.post('/getPossibleRoutes', function(req,res) {
     var ride;
     var rideDetails;
     var finalRequestList = [];
+    var apiCallList = [];
+    var paramsList = [];
 
     const onGetRide = function(err,response){
         if(err){res.send(response);
@@ -90,13 +93,18 @@ router.post('/getPossibleRoutes', function(req,res) {
                     continue;
                 }
                 finalRequestList.push(request);
-                var params = {
+                paramsList.push({
                     origin: ride.origin,
                     destination: ride.destination,
                     waypoints:""+request.origin+"|"+request.destination
-                };
-                gm.directions(params,onGetRequestDirections);
+                });
             }
+            for(var i=0;i<paramsList.length;i++){
+                apiCallList.push(function(){
+                    gm.directions(paramsList[i],onGetRequestDirections);
+                });
+            }
+            async.series(apiCallList);
             res.json(finalRequestList);
         }
 
