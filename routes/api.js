@@ -97,6 +97,7 @@ router.post('/getPossibleRoutes', function(req,res) {
                 };
                 gm.directions(params,onGetRequestDirections);
             }
+            res.json(finalRequestList);
         }
 
     }
