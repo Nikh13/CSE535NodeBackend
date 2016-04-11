@@ -151,7 +151,7 @@ exports.getMyRides = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides r WHERE user_id = $1)",
+            client.query("SELECT ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.ride_id=c.ride_id))",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
@@ -179,7 +179,7 @@ exports.getRide = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE ride_id = $1",
+            client.query("SELECT user_id,origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE ride_id = $1",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
@@ -204,7 +204,7 @@ exports.getRequests = function (callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT user_id,request_id,origin, destination, pay_type, max_payment,ts FROM requests", function (err, result) {
+            client.query("SELECT user_id,request_id,origin, destination, pay_type, max_payment,ts FROM requests r WHERE NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.request_id=c.request_id)", function (err, result) {
                 if (err) {
                     callback(true, "Get error: " + err);
                 } else {
@@ -230,7 +230,7 @@ exports.getMyRequests = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT request_id,origin, destination, pay_type, max_payment,ts FROM requests WHERE user_id = $1",
+            client.query("SELECT request_id,origin, destination, pay_type, max_payment,ts FROM requests r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.request_id=c.request_id)",
                 [data.userid], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);

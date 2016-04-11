@@ -79,6 +79,7 @@ router.post('/getPossibleRoutes', function(req,res) {
                 origin: ride.origin,
                 destination: ride.destination
             };
+            //console.log(ride_id +" "+ride.user_id+" ");
             gm.directions(params,onGetRideDirections);
             db.getRequests(onGetRequests);
         }
@@ -90,7 +91,7 @@ router.post('/getPossibleRoutes', function(req,res) {
         } else {
             for(var i=0;i<result.length;i++){
                 var request = result[i];
-                if(request.pay_type!=ride.pay_type&&request.max_payment<ride.min_payment){
+                if(ride.user_id==request.user_id||request.pay_type!=ride.pay_type||request.max_payment<ride.min_payment){
                     continue;
                 }
                 var params = {
@@ -100,6 +101,10 @@ router.post('/getPossibleRoutes', function(req,res) {
                 };
                 requestList.push(request);
                 paramsList.push(params);
+            }
+            if(requestList.length==0) {
+                res.json({err: "No available requests"});
+                return;
             }
             for(var i=0;i<requestList.length;i++){
                 gm.directions(paramsList[i],onGetRequestDirections);
@@ -125,6 +130,10 @@ router.post('/getPossibleRoutes', function(req,res) {
                 request.delay = result.duration-rideDetails.duration;
                 finalRequestList.push(request);
             }
+        }
+        if(requestList.length==0) {
+            res.json({err: "No possible requests"});
+            return;
         }
         if(count==requestList.length-1)
             res.json(finalRequestList);
