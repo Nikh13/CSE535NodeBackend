@@ -80,14 +80,33 @@ router.get('/getRequests/:userid', function(req, res){
 
 });
 
+router.post('/getPendingRequestConfirmation', function(req, res){
+    var user_id = req.body.user_id;
 
+    const onRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    }
 
+    db.getPendingRequestConfirmation(user_id, onRequest);
 
+});
 
+router.post('/getPendingApprovals', function(req, res){
+    var user_id = req.body.user_id;
 
+    const onRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    }
 
+    db.getPendingApproval(user_id, onRequest);
 
-
+});
 
 module.exports = router;
 

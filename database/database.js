@@ -43,23 +43,19 @@ exports.insert = function (data, callback) {
     connect(onConnect);
 }
 
-exports.getUser = function (data, callback) {
+exports.getUser = function (user_id, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
             callback(true, message);
         }
         else {
-            client.query("SELECT * FROM users WHERE user_id = $1",
-                [data.user_id], function (err, result) {
+            client.query("SELECT user_id,username,name,email,phno FROM users WHERE user_id = $1",
+                [user_id], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
                     } else {
-                        var results = [];
                         var queryResults = result.rows;
-                        for (var i = 0; i < queryResults.length; i++) {
-                            results.push(queryResults[i]);
-                        }
-                        callback(false, results);
+                        callback(false, queryResults[0]);
                     }
                     client.end();
                 });
@@ -180,6 +176,31 @@ exports.getRide = function (data, callback) {
         }
         else {
             client.query("SELECT user_id,origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE ride_id = $1",
+                [data], function (err, result) {
+                    if (err) {
+                        callback(true, "Get error: " + err);
+                    } else {
+                        var queryResults = result.rows;
+                        var results = queryResults[0];
+                        callback(false, results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getRequest = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT user_id, origin, destination, pay_type, max_payment,ts FROM requests WHERE request_id = $1",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
@@ -320,5 +341,57 @@ exports.confirmRide = function (data, callback) {
         }
 
     }
+    connect(onConnect);
+}
+
+exports.getPendingRequestConfirmation = function (user_id,callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=FALSE",[user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
+    connect(onConnect);
+}
+
+exports.getPendingApproval = function (user_id,callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=FALSE",[user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
     connect(onConnect);
 }

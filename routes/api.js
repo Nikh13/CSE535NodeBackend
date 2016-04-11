@@ -30,9 +30,7 @@ router.post('/newuser', function(req, res) {
 });
 
 router.post('/getProfile', function(req, res) {
-    const data = {
-        user_id: req.body.userid
-    }
+    var user_id = req.body.userid
     const onGet = function(err,response){
         if(err){res.send(response);
         } else {
@@ -40,7 +38,7 @@ router.post('/getProfile', function(req, res) {
         }
 
     }
-    db.getUser(data,onGet);
+    db.getUser(user_id,onGet);
 });
 
 router.post('/login', function(req, res) {
@@ -193,6 +191,89 @@ router.get('/PayType/:payTypeId', function(req, res) {
         }
     }
     db.getPayType(data,onGet);
+});
+
+router.post('/getCompleteRide', function(req, res) {
+    var type = req.body.type;
+    var responseJSON = {};
+    var request_id = req.body.request_id;
+    var ride_id = req.body.ride_id;
+    const onGetRide = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.ride = response;
+            db.getRequest(request_id,onGetRequest);
+        }
+
+    }
+    const onGetRequest = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.request = response;
+            if(type==1)
+                db.getUser(responseJSON.ride.user_id,onGetProfile);
+            else
+                db.getUser(responseJSON.request.user_id,onGetProfile);
+        }
+
+    }
+    const onGetProfile = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.profile = response;
+            res.json(responseJSON);
+        }
+
+    }
+    db.getRide(ride_id,onGetRide);
+
+});
+
+router.post('/getRide', function(req, res) {
+    var error={};
+    var responseJSON = {};
+    var ride_id = req.body.ride_id;
+    const onGetRide = function(err,response){
+        if(err){error.status=true;error.message=response
+        } else {
+            responseJSON.ride = response;
+            db.getUser(response.user_id,onGetProfile);
+        }
+
+    }
+    const onGetProfile = function(err,response){
+        if(err){res.send(err);
+        } else {
+            console.log(response);
+            responseJSON.profile = response;
+            res.json(responseJSON);
+        }
+
+    }
+    db.getRide(ride_id,onGetRide);
+});
+
+router.post('/getRequest', function(req, res) {
+    var responseJSON = {};
+    var request_id = req.body.request_id;
+    const onGetRequest = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.request = response;
+            db.getUser(response.user_id,onGetProfile);
+        }
+
+    }
+    const onGetProfile = function(err,response){
+        if(err){res.send(err);
+        } else {
+
+            responseJSON.profile = response;
+            res.json(responseJSON);
+        }
+
+    }
+    db.getRequest(request_id,onGetRequest);
 });
 
 
