@@ -175,13 +175,16 @@ exports.getRide = function (data, callback) {
             callback(true, message);
         }
         else {
+            console.log("ID:" +data);
             client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides WHERE ride_id = $1",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
                     } else {
                         var queryResults = result.rows;
+                        console.log(queryResults);
                         var results = queryResults[0];
+                        console.log(results);
                         callback(false, results);
                     }
                     client.end();

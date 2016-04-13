@@ -72,6 +72,7 @@ router.post('/getPossibleRoutes', function(req,res) {
     const onGetRide = function(err,response){
         if(err){res.send(response);
         } else {
+            console.log("Ride Response: "+response);
             ride = response;
             var params = {
                 origin: ride.origin,
@@ -288,7 +289,7 @@ function computeTotalDistance(result) {
         totalTime += myroute.legs[i].duration.value;
     }
     totalDist = totalDist / 1000.
-    var duration = (totalTime / 60).toFixed(2);
+    var duration = (totalTime / 60);
     console.log("total distance is: " + totalDist + " km total time is: " + (totalTime / 60).toFixed(2) + " minutes");
     return {distance:totalDist,duration:duration};
 }
