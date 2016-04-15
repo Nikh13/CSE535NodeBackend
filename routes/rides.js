@@ -17,6 +17,8 @@ router.post('/createRide', function(req, res){
         seats : req.body.seatsAvail,
         min_amt : req.body.minAmount,
         timestamp: req.body.timestamp,
+        origin_address: req.body.origin_address,
+        destination_address: req.body.destination_address,
         max_delay: req.body.maxDelay
     }
     const onInsert = function(err,response){
@@ -37,6 +39,8 @@ router.post('/createRequest', function(req, res) {
         dest : req.body.dest,
         pay_type : req.body.payType,
         max_pay : req.body.maxPay,
+        origin_address: req.body.origin_address,
+        destination_address: req.body.destination_address,
         timestamp: req.body.timestamp
     }
     const onInsert = function(err,response){

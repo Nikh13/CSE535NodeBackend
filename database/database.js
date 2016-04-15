@@ -98,8 +98,8 @@ exports.createRide = function (data, callback) {
         }
         else {
             var ride_id = uuid.v4();
-            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-                [ride_id, data.user_id, data.origin, data.dest, data.seats, data.pay_type, data.min_amt, data.max_delay, data.timestamp], function (err, result) {
+            client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay,origin_address,dest_address,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+                [ride_id, data.user_id, data.origin, data.dest, data.seats, data.pay_type, data.min_amt, data.max_delay,data.origin_address,data.destination_address, data.timestamp], function (err, result) {
                     if (err) {
                         callback(true, "New Ride error: " + err);
                     }
@@ -122,9 +122,8 @@ exports.createRequest = function (data, callback) {
         }
         else {
             var request_id = uuid.v4();
-            console.log("Timestamp at insertion:" + data.timestamp);
-            client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment,ts) values($1,$2,$3,$4,$5,$6,$7)",
-                [request_id, data.user_id, data.origin, data.dest, data.pay_type, data.max_pay, data.timestamp], function (err, result) {
+            client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment,origin_address,dest_address,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+                [request_id, data.user_id, data.origin, data.dest, data.pay_type, data.max_pay, data.origin_address,data.destination_address,data.timestamp], function (err, result) {
                     if (err) {
                         callback(true, "New Request error: " + err);
                     }
@@ -185,6 +184,33 @@ exports.getRide = function (data, callback) {
                         console.log(queryResults);
                         var results = queryResults[0];
                         console.log(results);
+                        callback(false, results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getRides = function (callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay FROM rides",function (err, result) {
+                    if (err) {
+                        callback(true, "Get error: " + err);
+                    } else {
+                        var results = [];
+                        var queryResults = result.rows;
+                        for (var i = 0; i < queryResults.length; i++) {
+                            results.push(queryResults[i]);
+                        }
                         callback(false, results);
                     }
                     client.end();

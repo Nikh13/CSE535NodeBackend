@@ -277,7 +277,6 @@ router.post('/getRequest', function(req, res) {
     db.getRequest(request_id,onGetRequest);
 });
 
-
 module.exports = router;
 
 function computeTotalDistance(result) {
