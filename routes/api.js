@@ -182,6 +182,21 @@ router.post('/confirmRide', function(req,res){
 
 });
 
+router.post('/completeRide', function(req,res){
+    var data = req.body.ride_id;
+
+    const onComplete = function(err,result){
+        if(err){
+            res.send(err+" "+result);
+        } else {
+            res.json(result);
+        }
+    };
+
+    db.completeRide(data,onComplete)
+
+});
+
 router.get('/PayType/:payTypeId', function(req, res) {
     const data = req.params.payTypeId;
 

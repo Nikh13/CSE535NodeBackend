@@ -431,6 +431,30 @@ exports.confirmRide = function (data, callback) {
     connect(onConnect);
 }
 
+exports.completeRide = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            console.log("Completion Error: " + err);
+            callback(true, message);
+        }
+        else {
+            client.query("UPDATE confirmations SET completed=true WHERE ride_id=$1",
+                [data], function (err, result) {
+                    if (err) {
+                        callback(true, "Completion error: " + err);
+                    } else {
+                        callback(false, {status: "success"});
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
 exports.getPendingRequestConfirmation = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
