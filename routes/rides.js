@@ -67,7 +67,7 @@ router.post('/createRequest', function(req, res) {
             res.send(response);
         } 
         else {
-            db.createRide(data, onInsert);
+            db.createRequest(data, onInsert);
         }
     }
     db.checkRequestTimeStamp(data, onCheck);
