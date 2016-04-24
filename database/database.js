@@ -23,7 +23,7 @@ var connect = function (callback) {
 exports.insert = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             var uid = uuid.v4();
@@ -46,7 +46,7 @@ exports.insert = function (data, callback) {
 exports.getUser = function (user_id, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id,username,name,email,phno FROM users WHERE user_id = $1",
@@ -69,7 +69,7 @@ exports.getUser = function (user_id, callback) {
 exports.getUID = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id, name, email FROM users where username=$1 AND password=$2",
@@ -98,7 +98,7 @@ exports.getUID = function (data, callback) {
 exports.createRide = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message)
+            callback(true, {error:"DB error: " + message});
         }
         else {
             var ride_id = uuid.v4();
@@ -122,7 +122,7 @@ exports.createRide = function (data, callback) {
 exports.createRequest = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message)
+            callback(true, {error:"DB error: " + message});
         }
         else {
             var request_id = uuid.v4();
@@ -151,7 +151,7 @@ exports.checkRideTimeStamp = function(data, callback){
             callback(true, message)
         }
         else{
-            client.query("SELECT ts FROM rides WHERE user_id = $1 ", [data.user_id], fuction(err, result){
+            client.query("SELECT ts FROM rides WHERE user_id = $1 ", [data.user_id], function(err, result){
                 if (err){
                     callback(true, {error : "Database error: " + err})
                 }
@@ -191,7 +191,7 @@ exports.checkRequestTimeStamp = function(data, callback){
             callback(true, message)
         }
         else{
-            client.query("SELECT ts FROM requests WHERE user_id = $1 ", [data.user_id], fuction(err, result){
+            client.query("SELECT ts FROM requests WHERE user_id = $1 ", [data.user_id], function(err, result){
                 if (err){
                     callback(true, {error : "Database error: " + err})
                 }
@@ -228,7 +228,7 @@ exports.getMyRides = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id, ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.ride_id=c.ride_id))",
@@ -256,14 +256,13 @@ exports.getRide = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
-            console.log("ID:" + data);
             client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides WHERE ride_id = $1",
                 [data], function (err, result) {
                     if (err) {
-                        callback(true, "Get error: " + err);
+                        callback(true, {error:"Get error: " + err});
                     } else {
                         var queryResults = result.rows;
                         console.log(queryResults);
@@ -284,7 +283,7 @@ exports.getAssociatedRide = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.user_id,r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.request_id=$1",
@@ -311,7 +310,7 @@ exports.getRides = function (callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides", function (err, result) {
@@ -338,7 +337,7 @@ exports.getRequest = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id, request_id,origin, destination, pay_type, max_payment,ts,dest_address,origin_address FROM requests WHERE request_id = $1",
@@ -363,7 +362,7 @@ exports.getAssociatedRequest = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.user_id,r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.ride_id=$1",
@@ -390,7 +389,7 @@ exports.getRequests = function (callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id,request_id,origin, destination, pay_type, max_payment,ts,dest_address,origin_address FROM requests r WHERE NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.request_id=c.request_id)", function (err, result) {
@@ -416,7 +415,7 @@ exports.getMyRequests = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT user_id,request_id,origin, destination, pay_type, max_payment,ts,dest_address,origin_address FROM requests r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.request_id=c.request_id)",
@@ -443,7 +442,7 @@ exports.getPayType = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT pay_types FROM pay_types WHERE id = $1",
@@ -469,7 +468,7 @@ exports.getPayType = function (data, callback) {
 exports.insertConfirmation = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error: "DB error: " + message});
         }
         else {
             client.query("INSERT INTO confirmations(ride_id,user_id,request_id,requester_id) values($1,$2,$3,$4)",
@@ -493,7 +492,7 @@ exports.confirmRide = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
             console.log("Confirm Error: " + err);
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("UPDATE confirmations SET confirmed=true WHERE ride_id=$1",
@@ -516,8 +515,7 @@ exports.completeRide = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            console.log("Completion Error: " + err);
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("UPDATE confirmations SET completed=true WHERE ride_id=$1",
@@ -539,7 +537,7 @@ exports.updateRating = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("UPDATE users SET rating_total=rating_total+$1,rating_count=rating_count+1 WHERE user_id=$2",
@@ -560,7 +558,7 @@ exports.getPendingRequestConfirmation = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=FALSE", [user_id], function (err, result) {
@@ -586,7 +584,7 @@ exports.getPendingApproval = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=FALSE", [user_id], function (err, result) {
@@ -612,7 +610,7 @@ exports.getConfirmedRides = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=TRUE AND c.completed=FALSE", [user_id], function (err, result) {
@@ -638,7 +636,7 @@ exports.getConfirmedRequests = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=TRUE AND c.completed=FALSE", [user_id], function (err, result) {
@@ -664,7 +662,7 @@ exports.getHistoryRides = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.completed=TRUE", [user_id], function (err, result) {
@@ -690,7 +688,7 @@ exports.getHistoryRequests = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            callback(true, message);
+            callback(true, {error:"DB error: " + message});
         }
         else {
             client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.completed=TRUE", [user_id], function (err, result) {

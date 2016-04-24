@@ -77,13 +77,11 @@ router.post('/getPossibleRoutes', function (req, res) {
         if (err) {
             res.send(response);
         } else {
-            console.log("Ride Response: " + response);
             ride = response;
             var params = {
                 origin: ride.origin,
                 destination: ride.destination
             };
-            //console.log(ride_id +" "+ride.user_id+" ");
             gm.directions(params, onGetRideDirections);
             db.getRequests(onGetRequests);
         }
@@ -108,7 +106,7 @@ router.post('/getPossibleRoutes', function (req, res) {
                 paramsList.push(params);
             }
             if (requestList.length == 0) {
-                res.json({err: "No available requests"});
+                res.json(requestList);
                 return;
             }
             for (var i = 0; i < requestList.length; i++) {
@@ -127,7 +125,7 @@ router.post('/getPossibleRoutes', function (req, res) {
     }
     const onGetRequestDirections = function (err, result) {
         if (err) {
-            res.send("Some requestD error");
+            res.send(result);
         } else {
             var request = requestList[count];
             var result = computeTotalDistance(result);
@@ -139,7 +137,7 @@ router.post('/getPossibleRoutes', function (req, res) {
             }
         }
         if (requestList.length == 0) {
-            res.json({err: "No possible requests"});
+            res.json(requestList);
             return;
         }
         if (count == requestList.length - 1)
@@ -233,45 +231,6 @@ router.get('/PayType/:payTypeId', function (req, res) {
         }
     }
     db.getPayType(data, onGet);
-});
-
-router.post('/getCompleteRide', function (req, res) {
-    var type = req.body.type;
-    var responseJSON = {};
-    var request_id = req.body.request_id;
-    var ride_id = req.body.ride_id;
-    const onGetRide = function (err, response) {
-        if (err) {
-            res.send(err);
-        } else {
-            responseJSON.ride = response;
-            db.getRequest(request_id, onGetRequest);
-        }
-
-    }
-    const onGetRequest = function (err, response) {
-        if (err) {
-            res.send(err);
-        } else {
-            responseJSON.request = response;
-            if (type == 1)
-                db.getUser(responseJSON.ride.user_id, onGetProfile);
-            else
-                db.getUser(responseJSON.request.user_id, onGetProfile);
-        }
-
-    }
-    const onGetProfile = function (err, response) {
-        if (err) {
-            res.send(err);
-        } else {
-            responseJSON.profile = response;
-            res.json(responseJSON);
-        }
-
-    }
-    db.getRide(ride_id, onGetRide);
-
 });
 
 router.post('/getRide', function (req, res) {
