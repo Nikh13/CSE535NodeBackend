@@ -75,7 +75,7 @@ exports.getUID = function (data, callback) {
             client.query("SELECT user_id, name, email FROM users where username=$1 AND password=$2",
                 [data.uname, data.pwd], function (err, result) {
                     if (err) {
-                        callback(true, "Get error: " + err);
+                        callback(true, {error: "Get error: " + err});
                     } else {
                         if (result.rows.length > 0)
                             callback(false, {
