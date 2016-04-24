@@ -32,7 +32,7 @@ exports.insert = function (data, callback) {
                     if (err) {
                         callback(true, "Insert error: " + err);
                     } else {
-                        callback(false, {user_id: uid});
+                        callback(false, {user_id: uid, name: data.name, email: data.email});
                     }
                     client.end();
                 });
@@ -72,13 +72,17 @@ exports.getUID = function (data, callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT user_id FROM users where username=$1 AND password=$2",
+            client.query("SELECT user_id, name, email FROM users where username=$1 AND password=$2",
                 [data.uname, data.pwd], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
                     } else {
                         if (result.rows.length > 0)
-                            callback(false, {user_id: result.rows[0].user_id});
+                            callback(false, {
+                                user_id: result.rows[0].user_id,
+                                name: result.rows[0].name,
+                                email: result.rows[0].email
+                            });
                         else
                             callback(false, {error: "Invalid username/password"});
                     }
@@ -99,7 +103,7 @@ exports.createRide = function (data, callback) {
         else {
             var ride_id = uuid.v4();
             client.query("INSERT INTO rides(ride_id,user_id,origin,destination,seats,pay_type,min_payment,max_delay,origin_address,dest_address,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
-                [ride_id, data.user_id, data.origin, data.dest, data.seats, data.pay_type, data.min_amt, data.max_delay,data.origin_address,data.destination_address, data.timestamp], function (err, result) {
+                [ride_id, data.user_id, data.origin, data.dest, data.seats, data.pay_type, data.min_amt, data.max_delay, data.origin_address, data.destination_address, data.timestamp], function (err, result) {
                     if (err) {
                         callback(true, "New Ride error: " + err);
                     }
@@ -123,7 +127,7 @@ exports.createRequest = function (data, callback) {
         else {
             var request_id = uuid.v4();
             client.query("INSERT INTO requests(request_id,user_id,origin,destination,pay_type,max_payment,origin_address,dest_address,ts) values($1,$2,$3,$4,$5,$6,$7,$8,$9)",
-                [request_id, data.user_id, data.origin, data.dest, data.pay_type, data.max_pay, data.origin_address,data.destination_address,data.timestamp], function (err, result) {
+                [request_id, data.user_id, data.origin, data.dest, data.pay_type, data.max_pay, data.origin_address, data.destination_address, data.timestamp], function (err, result) {
                     if (err) {
                         callback(true, "New Request error: " + err);
                     }
@@ -174,8 +178,35 @@ exports.getRide = function (data, callback) {
             callback(true, message);
         }
         else {
-            console.log("ID:" +data);
+            console.log("ID:" + data);
             client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides WHERE ride_id = $1",
+                [data], function (err, result) {
+                    if (err) {
+                        callback(true, "Get error: " + err);
+                    } else {
+                        var queryResults = result.rows;
+                        console.log(queryResults);
+                        var results = queryResults[0];
+                        console.log(results);
+                        callback(false, results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getAssociatedRide = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.user_id,r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.request_id=$1",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
@@ -202,19 +233,19 @@ exports.getRides = function (callback) {
             callback(true, message);
         }
         else {
-            client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides",function (err, result) {
-                    if (err) {
-                        callback(true, "Get error: " + err);
-                    } else {
-                        var results = [];
-                        var queryResults = result.rows;
-                        for (var i = 0; i < queryResults.length; i++) {
-                            results.push(queryResults[i]);
-                        }
-                        callback(false, results);
+            client.query("SELECT user_id,ride_id,origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides", function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
                     }
-                    client.end();
-                });
+                    callback(false, results);
+                }
+                client.end();
+            });
 
         }
 
@@ -236,6 +267,33 @@ exports.getRequest = function (data, callback) {
                     } else {
                         var queryResults = result.rows;
                         var results = queryResults[0];
+                        callback(false, results);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.getAssociatedRequest = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.user_id,r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.ride_id=$1",
+                [data], function (err, result) {
+                    if (err) {
+                        callback(true, "Get error: " + err);
+                    } else {
+                        var queryResults = result.rows;
+                        var results = queryResults[0];
+                        console.log("Results");
+                        console.log(queryResults);
                         callback(false, results);
                     }
                     client.end();
@@ -353,7 +411,7 @@ exports.confirmRide = function (data, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
-            console.log("Confirm Error: "+err);
+            console.log("Confirm Error: " + err);
             callback(true, message);
         }
         else {
@@ -373,14 +431,14 @@ exports.confirmRide = function (data, callback) {
     connect(onConnect);
 }
 
-exports.getPendingRequestConfirmation = function (user_id,callback) {
+exports.getPendingRequestConfirmation = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
             callback(true, message);
         }
         else {
-            client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=FALSE",[user_id], function (err, result) {
+            client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=FALSE", [user_id], function (err, result) {
                 if (err) {
                     callback(true, "Get error: " + err);
                 } else {
@@ -399,14 +457,118 @@ exports.getPendingRequestConfirmation = function (user_id,callback) {
     connect(onConnect);
 }
 
-exports.getPendingApproval = function (user_id,callback) {
+exports.getPendingApproval = function (user_id, callback) {
 
     const onConnect = function (err, client, message) {
         if (err) {
             callback(true, message);
         }
         else {
-            client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=FALSE",[user_id], function (err, result) {
+            client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=FALSE", [user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
+    connect(onConnect);
+}
+
+exports.getConfirmedRides = function (user_id, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.confirmed=TRUE AND c.completed=FALSE", [user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
+    connect(onConnect);
+}
+
+exports.getConfirmedRequests = function (user_id, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.confirmed=TRUE AND c.completed=FALSE", [user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
+    connect(onConnect);
+}
+
+exports.getHistoryRides = function (user_id, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.ride_id,r.origin, r.destination, r.seats, r.pay_type, r.min_payment,r.ts,r.max_delay,r.dest_address,r.origin_address FROM rides r LEFT JOIN confirmations c USING (ride_id) WHERE c.user_id=$1 AND c.completed=TRUE", [user_id], function (err, result) {
+                if (err) {
+                    callback(true, "Get error: " + err);
+                } else {
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var i = 0; i < queryResults.length; i++) {
+                        results.push(queryResults[i]);
+                    }
+                    callback(false, results);
+                }
+                client.end();
+            });
+        }
+    }
+
+    connect(onConnect);
+}
+
+exports.getHistoryRequests = function (user_id, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("SELECT r.request_id,r.origin,r.destination,r.pay_type, r.max_payment,r.ts,r.dest_address,r.origin_address FROM requests r LEFT JOIN confirmations c USING (request_id) WHERE c.requester_id=$1 AND c.completed=TRUE", [user_id], function (err, result) {
                 if (err) {
                     callback(true, "Get error: " + err);
                 } else {

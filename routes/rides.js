@@ -84,9 +84,8 @@ router.get('/getRequests/:userid', function(req, res){
 
 });
 
-router.post('/getPendingRequestConfirmation', function(req, res){
+router.post('/getPendingRequestConfirmations', function(req, res){
     var user_id = req.body.user_id;
-
     const onRequest = function(err, response){
         if(err)
             res.send(response);
@@ -100,15 +99,117 @@ router.post('/getPendingRequestConfirmation', function(req, res){
 
 router.post('/getPendingApprovals', function(req, res){
     var user_id = req.body.user_id;
-
     const onRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    };
+
+    db.getPendingApproval(user_id, onRequest);
+
+});
+
+
+router.post('/getConfirmedRequests', function(req, res){
+    var user_id = req.body.user_id;
+    const onGetRequest = function(err, response){
         if(err)
             res.send(response);
         else
             res.json(response);
     }
 
-    db.getPendingApproval(user_id, onRequest);
+    db.getConfirmedRequests(user_id, onGetRequest);
+
+});
+
+router.post('/getConfirmedRides', function(req, res){
+    var user_id = req.body.user_id;
+    const onGetRide = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    };
+
+    db.getConfirmedRides(user_id, onGetRide);
+
+});
+
+router.post('/getHistoryRequests', function(req, res){
+    var user_id = req.body.user_id;
+    const onGetRequest = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    }
+
+    db.getHistoryRequests(user_id, onGetRequest);
+
+});
+
+router.post('/getHistoryRides', function(req, res){
+    var user_id = req.body.user_id;
+    const onGetRide = function(err, response){
+        if(err)
+            res.send(response);
+        else
+            res.json(response);
+    };
+
+    db.getHistoryRides(user_id, onGetRide);
+
+});
+
+router.post('/getAssociatedRequestDetails', function(req, res){
+    var ride_id = req.body.ride_id;
+    console.log("Ride ID: "+ride_id);
+    var responseJSON = {};
+    const onGetRequest = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.request = response;
+            console.log("Associated request: ");
+            console.log(response);
+            db.getUser(response.user_id,onGetProfile);
+        }
+
+    };
+    const onGetProfile = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.profile = response;
+            res.json(responseJSON);
+        }
+    };
+
+    db.getAssociatedRequest(ride_id, onGetRequest);
+
+});
+
+router.post('/getAssociatedRideDetails', function(req, res){
+    var request_id = req.body.request_id;
+    var responseJSON = {};
+    const onGetRide = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.ride = response;
+            db.getUser(response.user_id,onGetProfile);
+        }
+
+    };
+    const onGetProfile = function(err,response){
+        if(err){res.send(err);
+        } else {
+            responseJSON.profile = response;
+            res.json(responseJSON);
+        }
+
+    };
+
+    db.getAssociatedRide(request_id, onGetRide);
 
 });
 
