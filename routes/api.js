@@ -196,7 +196,7 @@ router.post('/completeRide', function (req, res) {
         rating: req.body.rating || -1,
         user_id: req.body.user_id
     };
-
+    console.log("Rating: "+data.rating);
     const onComplete = function (err, result) {
         if (err) {
             res.send(err + " " + result);
@@ -204,6 +204,7 @@ router.post('/completeRide', function (req, res) {
             if (data.rating == -1) {
                 res.json(result);
             } else {
+                console.log("With rating");
                 db.updateRating(data, onUpdate);
             }
         }
