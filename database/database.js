@@ -49,7 +49,7 @@ exports.getUser = function (user_id, callback) {
             callback(true, {error:"DB error: " + message});
         }
         else {
-            client.query("SELECT user_id,username,name,email,phno FROM users WHERE user_id = $1",
+            client.query("SELECT user_id,username,name,email,phno, rating_total, rating_count FROM users WHERE user_id = $1",
                 [user_id], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
