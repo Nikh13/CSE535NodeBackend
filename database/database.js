@@ -440,7 +440,7 @@ exports.completeRide = function (data, callback) {
         }
         else {
             client.query("UPDATE confirmations SET completed=true WHERE ride_id=$1",
-                [data], function (err, result) {
+                [data.ride_id], function (err, result) {
                     if (err) {
                         callback(true, "Completion error: " + err);
                     } else {
@@ -448,10 +448,30 @@ exports.completeRide = function (data, callback) {
                     }
                     client.end();
                 });
-
         }
 
     }
+    connect(onConnect);
+}
+
+exports.updateRating = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, message);
+        }
+        else {
+            client.query("UPDATE users SET rating_total=rating_total+$1,rating_count=rating_count+1 WHERE user_id=$2",
+                [data.rating, data.user_id], function (err, result) {
+                    if (err) {
+                        callback(true, "Completion error: " + err);
+                    } else {
+                        callback(false, {status: "success"});
+                    }
+                    client.end();
+                });
+        }
+    };
     connect(onConnect);
 }
 
