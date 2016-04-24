@@ -21,6 +21,15 @@ router.post('/createRide', function(req, res){
         destination_address: req.body.destination_address,
         max_delay: req.body.maxDelay
     }
+    const onCheck = function(err,response){
+        if(err){
+            res.send(response);
+        } 
+        else {
+            db.createRide(data, onInsert);
+        }
+    }
+
     const onInsert = function(err,response){
         if(err){
             res.send(response);
@@ -29,7 +38,8 @@ router.post('/createRide', function(req, res){
             res.json(response);
         }
     }
-    db.createRide(data, onInsert);
+
+    db.checkRideTimeStamp(data, onCheck);
 });
 
 router.post('/createRequest', function(req, res) {
@@ -51,11 +61,20 @@ router.post('/createRequest', function(req, res) {
             res.json(response);
         }
     }
-    db.createRequest(data, onInsert);
+
+    const onCheck = function(err,response){
+        if(err){
+            res.send(response);
+        } 
+        else {
+            db.createRide(data, onInsert);
+        }
+    }
+    db.checkRequestTimeStamp(data, onCheck);
 });
 
-router.get('/getRides/:userid', function(req, res){
-    var data = req.params.userid;
+router.post('/getRides/', function(req, res){
+    var data = req.body.userid;
 
     const onRequest = function(err, response){
         if(err)
@@ -68,10 +87,9 @@ router.get('/getRides/:userid', function(req, res){
 
 });
 
-router.get('/getRequests/:userid', function(req, res){
-    var data = {
-        userid : req.params.userid
-    }
+router.post('/getRequests/:userid', function(req, res){
+    var data = {userid : req.body.userid}
+    
 
     const onRequest = function(err, response){
         if(err)

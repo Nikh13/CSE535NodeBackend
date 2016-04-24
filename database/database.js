@@ -143,6 +143,87 @@ exports.createRequest = function (data, callback) {
     connect(onConnect)
 }
 
+
+exports.checkRideTimeStamp = function(data, callback){
+
+    const onConnect = function(err, client, message){
+        if (err){
+            callback(true, message)
+        }
+        else{
+            client.query("SELECT ts FROM rides WHERE user_id = $1 ", [data.user_id], fuction(err, result){
+                if (err){
+                    callback(true, {error : "Database error: " + err})
+                }
+                else{
+                    var user_date = new Date(data.timestamp);
+                    var user_year = user_date.getYear();
+                    var user_month = user_date.getMonth();
+                    var user_day = user_date.getDay();
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var ii = 0; ii < queryResults.length; ii++) {
+                        var date = new Date(queryResults[ii]);
+                        var year = date.getYear();
+                        var month = date.getMonth();
+                        var day = date.getDay();
+
+                        if ((user_year==year) && (user_month==month) && (user_day==day)){
+                            callback(true, {error: "Duplicate Time Error!"});
+                        }
+                        else{
+                            callback(false, data);
+                        }
+                    }
+                }
+                client.end();
+            });
+        }
+    }
+    connect(onConnect);
+
+}
+
+exports.checkRequestTimeStamp = function(data, callback){
+
+    const onConnect = function(err, client, message){
+        if (err){
+            callback(true, message)
+        }
+        else{
+            client.query("SELECT ts FROM requests WHERE user_id = $1 ", [data.user_id], fuction(err, result){
+                if (err){
+                    callback(true, {error : "Database error: " + err})
+                }
+                else{
+                    var user_date = new Date(data.timestamp);
+                    var user_year = user_date.getYear();
+                    var user_month = user_date.getMonth();
+                    var user_day = user_date.getDay();
+                    var results = [];
+                    var queryResults = result.rows;
+                    for (var ii = 0; ii < queryResults.length; ii++) {
+                        var date = new Date(queryResults[ii]);
+                        var year = date.getYear();
+                        var month = date.getMonth();
+                        var day = date.getDay();
+
+                        if ((user_year==year) && (user_month==month) && (user_day==day)){
+                            callback(true, {error: "Duplicate Time Error!"});
+                        }
+                        else{
+                            callback(false, data);
+                        }
+                    }
+                }
+                client.end();
+            });
+        }
+    }
+    connect(onConnect);
+
+}
+
 exports.getMyRides = function (data, callback) {
 
     const onConnect = function (err, client, message) {
