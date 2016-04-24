@@ -156,14 +156,15 @@ exports.checkRideTimeStamp = function(data, callback){
                     callback(true, {error : "Database error: " + err})
                 }
                 else{
-                    var user_date = new Date(data.timestamp);
+                    var user_date = new Date(parseInt(data.timestamp));
                     var user_year = user_date.getYear();
                     var user_month = user_date.getMonth();
                     var user_day = user_date.getDay();
                     var results = [];
                     var queryResults = result.rows;
                     for (var ii = 0; ii < queryResults.length; ii++) {
-                        var date = new Date(queryResults[ii]);
+                        var returned = parseInt(queryResults[ii].ts);
+                        var date = new Date(returned);
                         var year = date.getYear();
                         var month = date.getMonth();
                         var day = date.getDay();
