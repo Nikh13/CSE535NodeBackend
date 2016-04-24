@@ -87,7 +87,7 @@ router.post('/getRides/', function(req, res){
 
 });
 
-router.post('/getRequests/:userid', function(req, res){
+router.post('/getRequests/', function(req, res){
     var data = {userid : req.body.userid}
     
 

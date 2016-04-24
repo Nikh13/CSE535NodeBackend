@@ -233,7 +233,7 @@ exports.getMyRides = function (data, callback) {
             callback(true, {error:"DB error: " + message});
         }
         else {
-            client.query("SELECT user_id, ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.ride_id=c.ride_id))",
+            client.query("SELECT user_id, ride_id, origin, destination, seats, pay_type, min_payment,ts,max_delay,dest_address,origin_address FROM rides r WHERE user_id = $1 AND NOT EXISTS(SELECT 1 FROM confirmations c WHERE r.ride_id=c.ride_id)",
                 [data], function (err, result) {
                     if (err) {
                         callback(true, "Get error: " + err);
