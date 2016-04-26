@@ -9,9 +9,12 @@ var router = express.Router();
 var db = require('../database/database');
 var map = require('googlemaps');
 var async = require('async');
+var gcm = require('node-gcm');
+
 
 /* GET home page. */
 router.post('/newuser', function (req, res) {
+    var responseJSON;
     const data = {
         uname: req.body.username,
         pwd: req.body.password,
@@ -23,7 +26,22 @@ router.post('/newuser', function (req, res) {
         if (err) {
             res.send(response);
         } else {
-            res.json(response);
+            var device_token = req.body.device_token;
+            if (device_token == null) {
+                res.json(response);
+            } else {
+                responseJSON = response;
+                response.device_token = device_token;
+                db.updatedDeviceId(response, onUpdate);
+            }
+        }
+    }
+
+    const onUpdate = function (err, response) {
+        if (err) {
+            res.send(response);
+        } else {
+            res.json(responseJSON);
         }
 
     }
@@ -48,14 +66,31 @@ router.post('/login', function (req, res) {
         uname: req.body.username,
         pwd: req.body.password
     }
+    var responseJSON;
     const onGet = function (err, response) {
         if (err) {
             res.send(response);
         } else {
-            res.json(response);
+            var device_token = req.body.device_token;
+            if (device_token == null) {
+                res.json(response);
+            } else {
+                responseJSON = response;
+                response.device_token = device_token;
+                db.updatedDeviceId(response, onUpdate);
+            }
         }
 
     }
+    const onUpdate = function (err, response) {
+        if (err) {
+            res.send(response);
+        } else {
+            res.json(responseJSON);
+        }
+
+    }
+
     db.getUID(data, onGet);
 });
 
@@ -163,11 +198,28 @@ router.post('/selectRequest', function (req, res) {
 
     const onSelect = function (err, result) {
         if (err) {
-            res.send(err);
+            res.send(result);
+        } else {
+            db.getGCMData(data, onGetData);
+        }
+    };
+
+    const onGetData = function (err, result) {
+        if (err) {
+            res.send(result);
+        } else {
+            var registrationTokens = [result.device_token];
+            sendGCMMessage(registrationTokens, result, onSend);
+        }
+    };
+
+    const onSend = function (err, result) {
+        if (err) {
+            res.send(result);
         } else {
             res.json(result);
         }
-    };
+    }
 
     db.insertConfirmation(data, onSelect)
 
@@ -194,7 +246,7 @@ router.post('/completeRide', function (req, res) {
         rating: req.body.rating || -1,
         user_id: req.body.user_id
     };
-    console.log("Rating: "+data.rating);
+    console.log("Rating: " + data.rating);
     const onComplete = function (err, result) {
         if (err) {
             res.send(err + " " + result);
@@ -301,11 +353,15 @@ function computeTotalDistance(result) {
     return {distance: totalDist, duration: duration};
 }
 
-function arePointsNear(checkPoint, centerPoint, km) {
-    var ky = 40000 / 360;
-    var kx = Math.cos(Math.PI * centerPoint.lat / 180.0) * ky;
-    var dx = Math.abs(centerPoint.lng - checkPoint.lng) * kx;
-    var dy = Math.abs(centerPoint.lat - checkPoint.lat) * ky;
-    return Math.sqrt(dx * dx + dy * dy) <= km;
+function sendGCMMessage(registrationTokens, data, callback) {
+    var message = new gcm.Message();
+    message.addData(data);
+    var sender = new gcm.Sender('AIzaSyCOmOB73XYVLVuztQDRWs_6vYBM6oa_Q3E');
+
+// Now the sender can be used to send messages
+    sender.send(message, {registrationTokens: registrationTokens}, function (err, response) {
+        if (err) callback(true, {error: "GCM Sending Error " + response});
+        else    callback(false, {status: "success: ", response: response});
+    });
 }
 

@@ -66,6 +66,51 @@ exports.getUser = function (user_id, callback) {
     connect(onConnect);
 }
 
+exports.getGCMData = function (data, callback) {
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, {error:"DB error: " + message});
+        }
+        else {
+            client.query("SELECT u.device_token,r.origin_address,r.dest_address FROM users u LEFT JOIN requests r USING (user_id) WHERE u.user_id = $1 AND r.request_id = $2",
+                [data.requester_id,data.request_id], function (err, result) {
+                    if (err) {
+                        callback(true, "Get error: " + err);
+                    } else {
+                        var queryResults = result.rows;
+                        callback(false, queryResults[0]);
+                    }
+                    client.end();
+                });
+
+        }
+
+    }
+    connect(onConnect);
+}
+
+exports.updatedDeviceId = function (data, callback) {
+
+    const onConnect = function (err, client, message) {
+        if (err) {
+            callback(true, {error:"DB error: " + message});
+        }
+        else {
+            client.query("UPDATE users SET device_token=$1 WHERE user_id=$2",
+                [data.device_token,data.user_id], function (err, result) {
+                    if (err) {
+                        callback(true, "Update DID error: " + err);
+                    } else {
+                        callback(false, {status: "success"});
+                    }
+                    client.end();
+                });
+        }
+
+    }
+    connect(onConnect);
+}
+
 exports.getUID = function (data, callback) {
     const onConnect = function (err, client, message) {
         if (err) {
@@ -160,7 +205,6 @@ exports.checkRideTimeStamp = function(data, callback){
                     var user_year = user_date.getYear();
                     var user_month = user_date.getMonth();
                     var user_day = user_date.getDay();
-                    var results = [];
                     var queryResults = result.rows;
                     for (var ii = 0; ii < queryResults.length; ii++) {
                         var returned = parseInt(queryResults[ii].ts);
@@ -171,11 +215,11 @@ exports.checkRideTimeStamp = function(data, callback){
 
                         if ((user_year==year) && (user_month==month) && (user_day==day)){
                             callback(true, {error: "Duplicate Time Error!"});
-                        }
-                        else{
-                            callback(false, data);
+                            client.end();
+                            return;
                         }
                     }
+                    callback(false,null);
                 }
                 client.end();
             });
@@ -201,7 +245,6 @@ exports.checkRequestTimeStamp = function(data, callback){
                     var user_year = user_date.getYear();
                     var user_month = user_date.getMonth();
                     var user_day = user_date.getDay();
-                    var results = [];
                     var queryResults = result.rows;
                     for (var ii = 0; ii < queryResults.length; ii++) {
                         var returned = parseInt(queryResults[ii].ts);
@@ -212,11 +255,10 @@ exports.checkRequestTimeStamp = function(data, callback){
 
                         if ((user_year==year) && (user_month==month) && (user_day==day)){
                             callback(true, {error: "Duplicate Time Error!"});
-                        }
-                        else{
-                            callback(false, data);
+                            return;
                         }
                     }
+                    callback(false,null);
                 }
                 client.end();
             });
